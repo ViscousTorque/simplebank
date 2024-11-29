@@ -1,16 +1,34 @@
-DB_URL=postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable
+DB_URL=postgresql://admin:adminSecret@localhost:5432/simple_bank?sslmode=disable
 
 network:
 	docker network create bank-network
 
 postgres:
-	docker run --name postgres --network bank-network -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=secret -d postgres:14-alpine
+	docker run -d --rm \
+  --name postgres \
+  --network bank-network \
+  -p 5432:5432 \
+  -e POSTGRES_USER=admin \
+  -e POSTGRES_PASSWORD=adminSecret \
+  -e POSTGRES_DB=simplebank \
+  -v postgres-data:/var/lib/postgresql/data \
+  postgres
+
+pgadmin4:
+	docker run -d --rm \
+  --name pgadmin4 \
+  --network bank-network \
+  -p 8080:80 \
+  -e PGADMIN_DEFAULT_EMAIL=admin@example.com \
+  -e PGADMIN_DEFAULT_PASSWORD=adminSecret \
+  -v pgadmin-data:/var/lib/pgadmin \
+  dpage/pgadmin4
 
 mysql:
-	docker run --name mysql8 -p 3306:3306  -e MYSQL_ROOT_PASSWORD=secret -d mysql:8
+	docker run --name mysql8 -p 3306:3306 -e MYSQL_ROOT_PASSWORD=adminSecret -d mysql:8
 
 createdb:
-	docker exec -it postgres createdb --username=root --owner=root simple_bank
+	docker exec -it postgres createdb --username=admin --owner=admin simple_bank
 
 dropdb:
 	docker exec -it postgres dropdb simple_bank
@@ -36,8 +54,11 @@ db_docs:
 db_schema:
 	dbml2sql --postgres -o doc/schema.sql doc/db.dbml
 
-sqlc:
-	sqlc generate
+sqlcgen:
+	docker run --rm -v $(PWD):/src -w /src sqlc/sqlc generate
+
+sqlcinit:
+	docker run --rm -v $(PWD):/src -w /src sqlc/sqlc init
 
 test:
 	go test -v -cover -short ./...
@@ -65,4 +86,4 @@ evans:
 redis:
 	docker run --name redis -p 6379:6379 -d redis:7-alpine
 
-.PHONY: network postgres createdb dropdb migrateup migratedown migrateup1 migratedown1 new_migration db_docs db_schema sqlc test server mock proto evans redis
+.PHONY: network postgres createdb dropdb migrateup migratedown migrateup1 migratedown1 new_migration db_docs db_schema sqlcgen sqlcinit test server mock proto evans redis
