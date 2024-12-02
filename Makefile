@@ -10,7 +10,7 @@ postgres:
   -p 5432:5432 \
   -e POSTGRES_USER=admin \
   -e POSTGRES_PASSWORD=adminSecret \
-  -e POSTGRES_DB=simplebank \
+  -e POSTGRES_DB=simple_bank \
   -v postgres-data:/var/lib/postgresql/data \
   postgres
 
@@ -36,7 +36,11 @@ mysql:
 	docker exec -it mysql8 mysql -uroot -padminSecret simple_bank
 
 createdb:
+ifdef DOCKER_EXEC
 	docker exec -it postgres createdb --username=admin --owner=admin simple_bank
+else
+	psql -h postgres -U admin -d postgres -c "CREATE DATABASE simple_bank;"
+endif
 
 dropdb:
 	docker exec -it postgres dropdb simple_bank
