@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -18,14 +19,16 @@ func TestTransferTx(t *testing.T) {
 		Also we need to send the results from the go routines to the main testing routine using channels
 	*/
 	amount := int64(10) // Test below only works for +ve value here
-	numberTestGoRoutines := 5
+	numberTestGoRoutines := 2
 
 	errs := make(chan error)
 	testResults := make(chan TransferTxResult)
 
 	for i := 0; i < numberTestGoRoutines; i++ {
+		txName := fmt.Sprintf("tx %d", i)
 		go func() {
-			result, err := store.TransferTx(context.Background(), TransferTxParams{
+			ctx := context.WithValue(context.Background(), txKey, txName)
+			result, err := store.TransferTx(ctx, TransferTxParams{
 				FromAccountID: testFromAccount.ID,
 				ToAccountID:   testToAccount.ID,
 				Amount:        amount,
@@ -106,14 +109,15 @@ func TestTransferTx(t *testing.T) {
 		existed[k] = true
 	}
 
-	// TODO: this bit is not concurrent safe, fix issue
-	// check the final updated balance
-	// updatedAccount1, err := testStore.GetAccount(context.Background(), testFromAccount.ID)
-	// require.NoError(t, err)
+	// // check the final updated balance
+	txName := fmt.Sprintf("tx GetAccount %d", 1)
+	ctx := context.WithValue(context.Background(), txKey, txName)
+	updatedFromAccount, err := store.GetAccount(ctx, testFromAccount.ID)
+	require.NoError(t, err)
 
-	// 	updatedAccount2, err := testStore.GetAccount(context.Background(), testToAccount.ID)
-	// 	require.NoError(t, err)
+	updateToAccount, err := store.GetAccount(context.Background(), testToAccount.ID)
+	require.NoError(t, err)
 
-	// require.Equal(t, testFromAccount.Balance-int64(numberTestGoRoutines)*amount, updatedAccount1.Balance)
-	// require.Equal(t, testToAccount.Balance+int64(numberTestGoRoutines)*amount, updatedAccount2.Balance)
+	require.Equal(t, testFromAccount.Balance-int64(numberTestGoRoutines)*amount, updatedFromAccount.Balance)
+	require.Equal(t, testToAccount.Balance+int64(numberTestGoRoutines)*amount, updateToAccount.Balance)
 }

@@ -52,7 +52,6 @@ const (
 	dbSource = "postgresql://admin:adminSecret@localhost:5432/simple_bank?sslmode=disable"
 )
 
-// var testStore Store
 var testQueries *Queries
 var testDB *pgxpool.Pool
 
