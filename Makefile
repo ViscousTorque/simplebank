@@ -33,6 +33,9 @@ createdb:
 dropdb:
 	docker exec -it postgres dropdb simple_bank
 
+stopdb:
+	docker stop postgres pgadmin4
+
 migrateup:
 	migrate -path db/migration -database "$(DB_URL)" -verbose up
 
@@ -86,4 +89,4 @@ evans:
 redis:
 	docker run --name redis -p 6379:6379 -d redis:7-alpine
 
-.PHONY: network postgres createdb dropdb migrateup migratedown migrateup1 migratedown1 new_migration db_docs db_schema sqlcgen sqlcinit test server mock proto evans redis
+.PHONY: network postgres createdb dropdb migrateup migratedown migrateup1 migratedown1 new_migration db_docs db_schema sqlcgen sqlcinit test server mock proto evans redis stopdb
