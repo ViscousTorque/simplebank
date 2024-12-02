@@ -24,8 +24,16 @@ pgadmin4:
   -v pgadmin-data:/var/lib/pgadmin \
   dpage/pgadmin4
 
+mysql8up:
+	docker run --rm --name mysql8 -p 3306:3306 \
+	-e MYSQL_ROOT_PASSWORD=adminSecret \
+	-v mysql8_data:/var/lib/mysql \
+	-d mysql:8
+
 mysql:
-	docker run --name mysql8 -p 3306:3306 -e MYSQL_ROOT_PASSWORD=adminSecret -d mysql:8
+	docker ps | grep mysql8 || echo "Container is not running. Start it with 'make mysql8up'."
+	docker exec -it mysql8 mysql -uroot -padminSecret -e "CREATE DATABASE IF NOT EXISTS simple_bank;"
+	docker exec -it mysql8 mysql -uroot -padminSecret simple_bank
 
 createdb:
 	docker exec -it postgres createdb --username=admin --owner=admin simple_bank
@@ -89,4 +97,4 @@ evans:
 redis:
 	docker run --name redis -p 6379:6379 -d redis:7-alpine
 
-.PHONY: network postgres createdb dropdb migrateup migratedown migrateup1 migratedown1 new_migration db_docs db_schema sqlcgen sqlcinit test server mock proto evans redis stopdb
+.PHONY: network postgres mysql8up mysql createdb dropdb migrateup migratedown migrateup1 migratedown1 new_migration db_docs db_schema sqlcgen sqlcinit test server mock proto evans redis stopdb

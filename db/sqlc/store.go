@@ -100,8 +100,11 @@ func (store *Store) TransferTx(ctx context.Context, args TransferTxParams) (Tran
 		}
 
 		fmt.Println(txName, "Transfer Money")
-		result.FromAccount, result.ToAccount, err = transferMoney(ctx, q, args.FromAccountID, -args.Amount, args.ToAccountID, args.Amount)
-
+		if args.FromAccountID < args.ToAccountID {
+			result.FromAccount, result.ToAccount, err = transferMoney(ctx, q, args.FromAccountID, -args.Amount, args.ToAccountID, args.Amount)
+		} else {
+			result.ToAccount, result.FromAccount, err = transferMoney(ctx, q, args.ToAccountID, args.Amount, args.FromAccountID, -args.Amount)
+		}
 		return err
 	})
 

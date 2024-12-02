@@ -19,7 +19,7 @@ func TestTransferTx(t *testing.T) {
 		Also we need to send the results from the go routines to the main testing routine using channels
 	*/
 	amount := int64(10) // Test below only works for +ve value here
-	numberTestGoRoutines := 2
+	numberTestGoRoutines := 5
 
 	errs := make(chan error)
 	testResults := make(chan TransferTxResult)
@@ -120,4 +120,55 @@ func TestTransferTx(t *testing.T) {
 
 	require.Equal(t, testFromAccount.Balance-int64(numberTestGoRoutines)*amount, updatedFromAccount.Balance)
 	require.Equal(t, testToAccount.Balance+int64(numberTestGoRoutines)*amount, updateToAccount.Balance)
+}
+
+func TestTransferTxDeadlock(t *testing.T) {
+	store := NewStore(testDB)
+
+	testFromAccount := createRandomAccount(t)
+	testToAccount := createRandomAccount(t)
+	amount := int64(10) // Test below only works for +ve value here
+	numberTestGoRoutines := 10
+
+	errs := make(chan error)
+
+	for i := 0; i < numberTestGoRoutines; i++ {
+		testFromAccountId := testFromAccount.ID
+		testToAccountId := testToAccount.ID
+
+		if i%2 == 1 {
+			testFromAccountId = testToAccount.ID
+			testToAccountId = testFromAccount.ID
+		}
+
+		txName := fmt.Sprintf("tx %d", i)
+		go func() {
+			ctx := context.WithValue(context.Background(), txKey, txName)
+			_, err := store.TransferTx(ctx, TransferTxParams{
+				FromAccountID: testFromAccountId,
+				ToAccountID:   testToAccountId,
+				Amount:        amount,
+			})
+
+			errs <- err
+		}()
+	}
+
+	// Verify the results
+	for i := 0; i < numberTestGoRoutines; i++ {
+		actualErr := <-errs
+		require.NoError(t, actualErr)
+	}
+
+	// // check the final updated balance
+	txName := fmt.Sprintf("tx GetAccount %d", 1)
+	ctx := context.WithValue(context.Background(), txKey, txName)
+	updatedFromAccount, err := store.GetAccount(ctx, testFromAccount.ID)
+	require.NoError(t, err)
+
+	updateToAccount, err := store.GetAccount(context.Background(), testToAccount.ID)
+	require.NoError(t, err)
+
+	require.Equal(t, testFromAccount.Balance, updatedFromAccount.Balance)
+	require.Equal(t, testToAccount.Balance, updateToAccount.Balance)
 }
