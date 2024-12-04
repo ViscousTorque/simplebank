@@ -8,12 +8,12 @@ import (
 
 // Server for all HTTP requests in the simple bank app
 type Server struct {
-	store  *db.Store
+	store  db.Store
 	router *gin.Engine
 }
 
 // NewServer to setup HTTP routes and server
-func NewServer(store *db.Store) *Server {
+func NewServer(store db.Store) *Server {
 	router := gin.Default()
 	server := &Server{
 		store:  store,

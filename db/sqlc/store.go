@@ -23,20 +23,25 @@ ChatGPT update to course code:
 	struct to include a pgx connection pool (*pgxpool.Pool) instead of *sql.DB. Additionally,
 	you should ensure that the Queries struct is modified to work with pgx if necessary.
 */
-type Store struct {
+type SQLStore struct {
 	*Queries
 	db *pgxpool.Pool
 }
 
+type Store interface {
+	Querier
+	TransferTx(ctx context.Context, args TransferTxParams) (TransferTxResult, error)
+}
+
 // NewStore creates a new Store with the given pgxpool.Pool
-func NewStore(pool *pgxpool.Pool) *Store {
-	return &Store{
+func NewStore(pool *pgxpool.Pool) Store {
+	return &SQLStore{
 		Queries: New(pool),
 		db:      pool,
 	}
 }
 
-func (store *Store) execTx(ctx context.Context, fn func(*Queries) error) error {
+func (store *SQLStore) execTx(ctx context.Context, fn func(*Queries) error) error {
 	tx, err := store.db.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return err
@@ -71,7 +76,7 @@ type TransferTxResult struct {
 	ToEntry     Entry    `json:"to_entry"`
 }
 
-func (store *Store) TransferTx(ctx context.Context, args TransferTxParams) (TransferTxResult, error) {
+func (store *SQLStore) TransferTx(ctx context.Context, args TransferTxParams) (TransferTxResult, error) {
 	var result TransferTxResult
 
 	err := store.execTx(ctx, func(q *Queries) error {
