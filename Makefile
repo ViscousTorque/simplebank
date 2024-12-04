@@ -18,7 +18,7 @@ pgadmin4:
 	docker run -d --rm \
   --name pgadmin4 \
   --network bank-network \
-  -p 8080:80 \
+  -p 8000:80 \
   -e PGADMIN_DEFAULT_EMAIL=admin@example.com \
   -e PGADMIN_DEFAULT_PASSWORD=adminSecret \
   -v pgadmin-data:/var/lib/pgadmin \
