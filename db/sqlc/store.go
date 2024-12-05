@@ -2,7 +2,6 @@ package db
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -69,7 +68,7 @@ type TransferTxParams struct {
 }
 
 type TransferTxResult struct {
-	Transfer    Transfer `json:"amount"`
+	Transfer    Transfer `json:"transfer"`
 	FromAccount Account  `json:"from_account"`
 	ToAccount   Account  `json:"to_account"`
 	FromEntry   Entry    `json:"from_entry"`
@@ -81,13 +80,10 @@ func (store *SQLStore) TransferTx(ctx context.Context, args TransferTxParams) (T
 
 	err := store.execTx(ctx, func(q *Queries) error {
 		var err error
-		txName := ctx.Value(txKey)
-		fmt.Println(txName, "Create Transfer")
 		result.Transfer, err = q.CreateTransfer(ctx, CreateTransferParams(args))
 		if err != nil {
 			return err
 		}
-		fmt.Println(txName, "Create Entry for FromAccount")
 		result.FromEntry, err = q.CreateEntry(ctx, CreateEntryParams{
 			AccountID: args.FromAccountID,
 			Amount:    -args.Amount,
@@ -95,7 +91,6 @@ func (store *SQLStore) TransferTx(ctx context.Context, args TransferTxParams) (T
 		if err != nil {
 			return err
 		}
-		fmt.Println(txName, "Create Entry for ToAccount")
 		result.ToEntry, err = q.CreateEntry(ctx, CreateEntryParams{
 			AccountID: args.ToAccountID,
 			Amount:    args.Amount,
@@ -103,8 +98,6 @@ func (store *SQLStore) TransferTx(ctx context.Context, args TransferTxParams) (T
 		if err != nil {
 			return err
 		}
-
-		fmt.Println(txName, "Transfer Money")
 		if args.FromAccountID < args.ToAccountID {
 			result.FromAccount, result.ToAccount, err = transferMoney(ctx, q, args.FromAccountID, -args.Amount, args.ToAccountID, args.Amount)
 		} else {
@@ -120,8 +113,6 @@ func transferMoney(ctx context.Context, q *Queries,
 	fromAccountID int64, fromAccountAmount int64,
 	toAccountID int64, toAccountAmount int64,
 ) (fromAccount Account, toAccount Account, err error) {
-	txName := ctx.Value(txKey)
-	fmt.Println(txName, "AddAccountBalance - fromAccount")
 	fromAccount, err = q.AddAccountBalance(ctx, AddAccountBalanceParams{
 		ID:     fromAccountID,
 		Amount: fromAccountAmount,
@@ -129,7 +120,6 @@ func transferMoney(ctx context.Context, q *Queries,
 	if err != nil {
 		return
 	}
-	fmt.Println(txName, "AddAccountBalance - toAccount")
 	toAccount, err = q.AddAccountBalance(ctx, AddAccountBalanceParams{
 		ID:     toAccountID,
 		Amount: toAccountAmount,

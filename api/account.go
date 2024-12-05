@@ -10,16 +10,7 @@ import (
 
 type createAccountRequest struct {
 	Owner    string `json:"owner" binding:"required"`
-	Currency string `json:"currency" binding:"required,oneof=USD EUR"` //gin has field validation built in
-}
-
-type getAccountRequest struct {
-	ID int64 `uri:"id" binding:"required,min=1"`
-}
-
-type listAccountsRequest struct {
-	PageID   int32 `form:"page_id" binding:"required,min=1"`
-	PageSize int32 `form:"page_size" binding:"required,min=5,max=10"`
+	Currency string `json:"currency" binding:"required,currency"` //gin has field validation built in
 }
 
 func (server *Server) createAccount(ctx *gin.Context) {
@@ -44,6 +35,10 @@ func (server *Server) createAccount(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, account)
 }
 
+type getAccountRequest struct {
+	ID int64 `uri:"id" binding:"required,min=1"`
+}
+
 func (server *Server) getAccount(ctx *gin.Context) {
 	var request getAccountRequest
 	if err := ctx.ShouldBindUri(&request); err != nil {
@@ -62,6 +57,11 @@ func (server *Server) getAccount(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, account)
+}
+
+type listAccountsRequest struct {
+	PageID   int32 `form:"page_id" binding:"required,min=1"`
+	PageSize int32 `form:"page_size" binding:"required,min=5,max=10"`
 }
 
 func (server *Server) listAccounts(ctx *gin.Context) {

@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-var currencies = [3]string{"EUR", "USD", "CAD"}
+var currencies = [3]string{EUR, USD, GBP}
 
 // Create a private instance of rand.Rand with a unique source
 var rng = rand.New(rand.NewSource(time.Now().UnixNano()))

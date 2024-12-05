@@ -4,6 +4,8 @@ import (
 	db "main/db/sqlc"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
+	"github.com/go-playground/validator/v10"
 )
 
 // Server for all HTTP requests in the simple bank app
@@ -20,6 +22,10 @@ func NewServer(store db.Store) *Server {
 		router: router,
 	}
 
+	if valid, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		valid.RegisterValidation("currency", validCurrency)
+	}
+
 	server.setupRoutes()
 
 	return server
@@ -27,9 +33,12 @@ func NewServer(store db.Store) *Server {
 
 // setupRoutes sets up HTTP routes for the server
 func (server *Server) setupRoutes() {
+
 	server.router.POST("/accounts", server.createAccount)
 	server.router.GET("/accounts/:id", server.getAccount)
 	server.router.GET("/accounts", server.listAccounts)
+
+	server.router.POST("/transfers", server.createTransfers)
 }
 
 // Run starts the HTTP server
