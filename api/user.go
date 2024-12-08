@@ -61,6 +61,7 @@ func (server *Server) createUser(ctx *gin.Context) {
 
 	response := createUserResponse{
 		Username:          user.Username,
+		FullName:          user.FullName,
 		PasswordChangedAt: user.PasswordChangeAt,
 		Email:             user.Email,
 		CreatedAt:         user.CreatedAt,
