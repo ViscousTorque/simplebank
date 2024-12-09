@@ -1,7 +1,10 @@
 package api
 
 import (
+	"fmt"
 	db "main/db/sqlc"
+	"main/token"
+	"main/util"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -10,16 +13,25 @@ import (
 
 // Server for all HTTP requests in the simple bank app
 type Server struct {
-	store  db.Store
-	router *gin.Engine
+	config     util.Config
+	store      db.Store
+	tokenMaker token.Maker
+	router     *gin.Engine
 }
 
 // NewServer to setup HTTP routes and server
-func NewServer(store db.Store) *Server {
+func NewServer(config util.Config, store db.Store) (*Server, error) {
 	router := gin.Default()
+	tokenMaker, err := token.NewPasetoMaker(config.TokenSymmetricKey)
+	if err != nil {
+		return nil, fmt.Errorf("cannot create token maker %v", err)
+	}
+
 	server := &Server{
-		store:  store,
-		router: router,
+		config:     config,
+		store:      store,
+		router:     router,
+		tokenMaker: tokenMaker,
 	}
 
 	if valid, ok := binding.Validator.Engine().(*validator.Validate); ok {
@@ -28,13 +40,14 @@ func NewServer(store db.Store) *Server {
 
 	server.setupRoutes()
 
-	return server
+	return server, nil
 }
 
 // setupRoutes sets up HTTP routes for the server
 func (server *Server) setupRoutes() {
 
 	server.router.POST("/users", server.createUser)
+	server.router.POST("/users/login", server.loginUser)
 
 	server.router.POST("/accounts", server.createAccount)
 	server.router.GET("/accounts/:id", server.getAccount)

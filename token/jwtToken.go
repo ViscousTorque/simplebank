@@ -16,7 +16,7 @@ type JWTToken struct {
 
 func NewJWTMaker(secretKey string) (Maker, error) {
 	if len(secretKey) < minJWTSecretSize {
-		return nil, fmt.Errorf("invalid Key : too short")
+		return nil, fmt.Errorf("invalid Key : too short : %v", len(secretKey))
 	}
 	return &JWTToken{secretKey}, nil
 }
