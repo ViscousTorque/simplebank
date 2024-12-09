@@ -169,6 +169,15 @@ func TestCreateUserAPI(t *testing.T) {
 	}
 }
 
+func randomAccount(owner string) db.Account {
+	return db.Account{
+		ID:       util.RandomInt(1, 1000),
+		Owner:    owner,
+		Balance:  util.RandomMoney(),
+		Currency: util.RandomCurrency(),
+	}
+}
+
 func randomUser(t *testing.T) (user db.User, password string) {
 	password = util.RandomString(6)
 	hashedPassword, err := util.HashPassword(password)

@@ -1,10 +1,12 @@
 package api
 
 import (
+	"errors"
 	"log"
 	"net/http"
 
 	db "main/db/sqlc"
+	"main/token"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,8 +23,9 @@ func (server *Server) createAccount(ctx *gin.Context) {
 		return
 	}
 
+	authPaylod := ctx.MustGet(authorisationPayloadKey).(*token.Payload)
 	args := db.CreateAccountParams{
-		Owner:    request.Owner,
+		Owner:    authPaylod.Username,
 		Currency: request.Currency,
 		Balance:  0,
 	}
@@ -63,6 +66,12 @@ func (server *Server) getAccount(ctx *gin.Context) {
 		return
 	}
 
+	authPaylod := ctx.MustGet(authorisationPayloadKey).(*token.Payload)
+	if account.Owner != authPaylod.Username {
+		err := errors.New("unauthorised account user")
+		ctx.JSON(http.StatusUnauthorized, errorResponse(err))
+		return
+	}
 	ctx.JSON(http.StatusOK, account)
 }
 
@@ -78,7 +87,9 @@ func (server *Server) listAccounts(ctx *gin.Context) {
 		return
 	}
 
+	authPayload := ctx.MustGet(authorisationPayloadKey).(*token.Payload)
 	args := db.ListAccountsParams{
+		Owner:  authPayload.Username,
 		Limit:  request.PageSize, // interesting point: if this was request.pageSize, binding fails!
 		Offset: (request.PageID - 1) * request.PageSize,
 	}
