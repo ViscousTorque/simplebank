@@ -81,6 +81,9 @@ test:
 server:
 	go run main.go
 
+docServer:
+	docker run --rm --name simplebank -p 8080:8080 --network bank-network -e "DB_SOURCE=postgresql://admin:adminSecret@postgres:5432/simple_bank?sslmode=disable" simplebank
+
 mock:
 	~/go/bin/mockgen -package mockdb --destination db/mock/store.go main/db/sqlc Store
 	# mockgen -package mockwk -destination worker/mock/distributor.go github.com/techschool/simplebank/worker TaskDistributor
@@ -101,4 +104,4 @@ evans:
 redis:
 	docker run --name redis -p 6379:6379 -d redis:7-alpine
 
-.PHONY: network postgres mysql8up mysql createdb dropdb migrateup migratedown migrateup1 migratedown1 new_migration db_docs db_schema sqlcgen sqlcinit test server mock proto evans redis stopdb
+.PHONY: network postgres mysql8up mysql createdb dropdb migrateup migratedown migrateup1 migratedown1 new_migration db_docs db_schema sqlcgen sqlcinit test server docServer mock proto evans redis stopdb
