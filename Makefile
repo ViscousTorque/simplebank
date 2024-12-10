@@ -51,14 +51,14 @@ stopdb:
 migrateup:
 	migrate -path db/migration -database "$(DB_URL)" -verbose up
 
-migrateup1:
-	migrate -path db/migration -database "$(DB_URL)" -verbose up 1
+migrateUpVersion:
+	migrate -path db/migration -database "$(DB_URL)" -verbose up $(version)
 
 migratedown:
 	migrate -path db/migration -database "$(DB_URL)" -verbose down
 
-migratedown1:
-	migrate -path db/migration -database "$(DB_URL)" -verbose down 1
+migrateDownVersion:
+	migrate -path db/migration -database "$(DB_URL)" -verbose down $(version)
 
 new_migration:
 	migrate create -ext sql -dir db/migration -seq $(name)

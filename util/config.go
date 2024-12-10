@@ -12,6 +12,7 @@ type Config struct {
 	ServerAddress       string        `mapstructure:"SERVER_ADDRESS"` // Matches SERVER_ADDRESS in app.env
 	TokenSymmetricKey   string        `mapstructure:"TOKEN_SYMMETRIC_KEY"`
 	AccessTokenDuration time.Duration `mapstructure:"ACCESS_TOKEN_DURATION"`
+	RefreshTimeDuration time.Duration `mapstructure:"REFRESH_TOKEN_DURATION"`
 }
 
 // loadConfig - read from file or env vars
