@@ -104,10 +104,7 @@ proto:
 # 	proto/*.proto
 # 	statik -src=./doc/swagger -dest=./doc
 
-evans:
-	evans --host localhost --port 9090 -r repl
-
 redis:
 	docker run --name redis -p 6379:6379 -d redis:7-alpine
 
-.PHONY: network postgres mysql8up mysql createdb dropdb migrateup migratedown migrateUpVersion migrateDownVersion new_migration db_docs db_schema sqlcgen sqlcinit test server docServer mock proto evans redis stopdb
+.PHONY: network postgres mysql8up mysql createdb dropdb migrateup migratedown migrateUpVersion migrateDownVersion new_migration db_docs db_schema sqlcgen sqlcinit test server docServer mock proto redis stopdb
