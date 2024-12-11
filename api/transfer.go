@@ -3,9 +3,10 @@ package api
 import (
 	"errors"
 	"fmt"
-	db "main/db/sqlc"
-	"main/token"
 	"net/http"
+
+	db "simplebank/db/sqlc"
+	"simplebank/token"
 
 	"github.com/gin-gonic/gin"
 )

@@ -4,8 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"main/util"
 	"testing"
+
+	"simplebank/util"
 
 	"github.com/stretchr/testify/require"
 )

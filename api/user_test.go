@@ -6,12 +6,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	mockdb "main/db/mock"
-	db "main/db/sqlc"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
 	"testing"
+
+	mockdb "simplebank/db/mock"
+	db "simplebank/db/sqlc"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"

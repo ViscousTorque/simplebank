@@ -2,12 +2,13 @@ package api
 
 import (
 	"fmt"
-	"main/token"
-	"main/util"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
+
+	"simplebank/token"
+	"simplebank/util"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"

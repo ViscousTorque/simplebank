@@ -1,10 +1,10 @@
 package api
 
 import (
-	mockdb "main/db/mock"
-	db "main/db/sqlc"
-	"main/token"
-	"main/util"
+	mockdb "simplebank/db/mock"
+	db "simplebank/db/sqlc"
+	"simplebank/token"
+	"simplebank/util"
 
 	"bytes"
 	"database/sql"
