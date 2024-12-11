@@ -85,7 +85,7 @@ docServer:
 	docker run --rm --name simplebank -p 8080:8080 --network bank-network -e "DB_SOURCE=postgresql://admin:adminSecret@postgres:5432/simple_bank?sslmode=disable" simplebank
 
 mock:
-	~/go/bin/mockgen -package mockdb --destination db/mock/store.go github.com/viscoustorque/simplebank/db/sqlc Store
+	~/go/bin/mockgen -package mockdb --destination db/mock/store.go simplebank/db/sqlc Store
 	# mockgen -package mockwk -destination worker/mock/distributor.go github.com/techschool/simplebank/worker TaskDistributor
 
 proto:

@@ -1,4 +1,4 @@
-module github.com/viscoustorque/simplebank
+module simplebank
 
 go 1.22.2
 
