@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	db "main/db/sqlc"
+	db "simplebank/db/sqlc"
 
 	"github.com/gin-gonic/gin"
 )

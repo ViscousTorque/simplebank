@@ -1,12 +1,12 @@
 package api
 
 import (
-	db "main/db/sqlc"
-	"main/util"
-	"time"
+	db "simplebank/db/sqlc"
+	"simplebank/util"
 
 	"os"
 	"testing"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"

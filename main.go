@@ -4,9 +4,9 @@ import (
 	"context"
 	"log"
 
-	"main/api"
-	db "main/db/sqlc"
-	"main/util"
+	"simplebank/api"
+	db "simplebank/db/sqlc"
+	"simplebank/util"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )

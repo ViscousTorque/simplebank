@@ -5,8 +5,8 @@ import (
 	"log"
 	"net/http"
 
-	db "main/db/sqlc"
-	"main/token"
+	db "simplebank/db/sqlc"
+	"simplebank/token"
 
 	"github.com/gin-gonic/gin"
 )

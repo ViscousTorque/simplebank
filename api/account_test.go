@@ -1,17 +1,17 @@
 package api
 
 import (
-	mockdb "main/db/mock"
-	db "main/db/sqlc"
-	"main/token"
-	"main/util"
-	"time"
+	mockdb "simplebank/db/mock"
+	db "simplebank/db/sqlc"
+	"simplebank/token"
+	"simplebank/util"
 
 	"bytes"
 	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
+	"time"
 
 	"net/http"
 	"net/http/httptest"

@@ -44,7 +44,7 @@ import (
 	"os"
 	"testing"
 
-	"main/util"
+	"simplebank/util"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
