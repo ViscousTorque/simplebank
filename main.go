@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net"
+	"net/http"
 	"os"
 
 	"simplebank/api"
@@ -12,10 +13,12 @@ import (
 	"simplebank/pb"
 	"simplebank/util"
 
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/reflection"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func main() {
@@ -31,9 +34,12 @@ func main() {
 	defer conn.Close()
 
 	store := db.NewStore(conn)
-	runGrpcServer(config, store)
+	//TODO: use wait group here for better shutdown handling!
+	go runGrpcServer(config, store)
+	runGatewayServer(config, store)
 }
 
+// TODO: setup this on config or something :-)
 func runGinServer(config util.Config, store db.Store) {
 	server, err := api.NewServer(config, store)
 	if err != nil {
@@ -73,12 +79,56 @@ func runGrpcServer(config util.Config, store db.Store) {
 
 	listener, err := net.Listen("tcp", config.GrpcServerAddress)
 	if err != nil {
-		log.Fatal("cannot create listener")
+		log.Fatal("cannot create listener", err)
 	}
 	log.Printf("start gRPC listener server at %s", config.GrpcServerAddress)
 
 	err = grpcServer.Serve(listener)
 	if err != nil {
-		log.Fatal("gRPC server failed to serve")
+		log.Fatal("gRPC server failed to serve", err)
+	}
+}
+
+func runGatewayServer(config util.Config, store db.Store) {
+	logger := log.Default() // This is the standard Go logger, you can replace it with logrus or zap
+	grpclog.SetLoggerV2(grpclog.NewLoggerV2(logger.Writer(), logger.Writer(), logger.Writer()))
+
+	server, err := gapi.NewServer(config, store)
+	if err != nil {
+		log.Fatal("cannot create a new server", err)
+	}
+
+	// enable snake case as per proto files - see gateway doco
+	jsonOption := runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{
+		MarshalOptions: protojson.MarshalOptions{
+			UseProtoNames: true,
+		},
+		UnmarshalOptions: protojson.UnmarshalOptions{
+			DiscardUnknown: true,
+		},
+	})
+
+	grpcMux := runtime.NewServeMux(jsonOption)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	err = pb.RegisterSimpleBankHandlerServer(ctx, grpcMux, server)
+	if err != nil {
+		log.Fatalln("cannot register handler server", err)
+	}
+
+	mux := http.NewServeMux()
+	mux.Handle("/", grpcMux)
+
+	listener, err := net.Listen("tcp", config.HttpServerAddress)
+	if err != nil {
+		log.Fatal("cannot create http listener", err)
+	}
+	log.Printf("start Http Gateway server at %s", listener.Addr().String())
+
+	err = http.Serve(listener, mux)
+	if err != nil {
+		log.Fatal("gRPC Http Gateway failed to serve", err)
 	}
 }
