@@ -15,6 +15,11 @@ import (
 )
 
 func (server *Server) LoginUser(ctx context.Context, request *pb.LoginUserRequest) (*pb.LoginUserResponse, error) {
+	violations := validateLoginUserRequest(request)
+	if violations != nil {
+		return nil, invalidArgumentError(violations)
+	}
+
 	user, err := server.store.GetUser(ctx, request.GetUsername())
 	if err != nil {
 		if errors.Is(err, db.ErrRecordNotFound) {
