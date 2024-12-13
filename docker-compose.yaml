@@ -59,9 +59,7 @@ services:
 
 volumes:
   postgres-data:
-      external: false
   pgadmin-data:
-      external: false
 
 networks:
   bank-network:
