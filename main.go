@@ -14,6 +14,9 @@ import (
 	"simplebank/pb"
 	"simplebank/util"
 
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rakyll/statik/fs"
@@ -35,11 +38,28 @@ func main() {
 	}
 	defer conn.Close()
 
+	runDBMigration(config.MigrationURL, config.DBSource)
+
 	store := db.NewStore(conn)
 	//TODO: use wait group here for better shutdown handling!
 	go runGrpcServer(config, store)
 	runGatewayServer(config, store)
 	// runGinServer(config, store)
+}
+
+func runDBMigration(migrationURL string, dbSource string) {
+	log.Println("Starting db migration ...")
+	migration, err := migrate.New(migrationURL, dbSource)
+	if err != nil {
+		log.Fatal("cannot create new migrate instance", err)
+	}
+
+	// its not clear to me why there would be an error return if there is no change!
+	if err = migration.Up(); err != nil && err != migrate.ErrNoChange {
+		log.Fatal("failed to run migrate up", err)
+	}
+
+	log.Println("db migrated successfully")
 }
 
 // TODO: setup this on config or something :-)
