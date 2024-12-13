@@ -39,6 +39,7 @@ func main() {
 	//TODO: use wait group here for better shutdown handling!
 	go runGrpcServer(config, store)
 	runGatewayServer(config, store)
+	// runGinServer(config, store)
 }
 
 // TODO: setup this on config or something :-)
