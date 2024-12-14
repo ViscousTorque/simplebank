@@ -11,7 +11,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - udemy_simplebank_postgres-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U admin -d simple_bank"]
       interval: 10s
@@ -31,7 +31,7 @@ services:
       - PGADMIN_DEFAULT_EMAIL=admin@example.com
       - PGADMIN_DEFAULT_PASSWORD=adminSecret
     volumes:
-      - pgadmin-data:/var/lib/pgadmin
+      - udemy_simplebank_pgadmin-data:/var/lib/pgadmin
 
   api:
     build:
@@ -58,9 +58,9 @@ services:
     command: [ "/app/main" ]
 
 volumes:
-  postgres-data:
+  udemy_simplebank_pgadmin-data:
       external: true
-  pgadmin-data:
+  udemy_simplebank_postgres-data:
       external: true
 
 networks:
