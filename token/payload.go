@@ -9,7 +9,7 @@ import (
 
 var (
 	ErrExpiredToken = errors.New("expired Token")
-	ErrInvalidToken = errors.New("invalud Token")
+	ErrInvalidToken = errors.New("invalid Token")
 )
 
 // Pyaload : payload data for the token
