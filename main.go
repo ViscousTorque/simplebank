@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"log"
 	"net"
 	"net/http"
 	"os"
@@ -20,8 +19,9 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rakyll/statik/fs"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/encoding/protojson"
 )
@@ -29,12 +29,16 @@ import (
 func main() {
 	config, err := util.LoadConfig(".")
 	if err != nil {
-		log.Fatal("cannot load config", err)
+		log.Fatal().Err(err).Msg("cannot load config")
+	}
+
+	if config.Environment == "development" {
+		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	}
 
 	conn, err := pgxpool.New(context.Background(), config.DBSource)
 	if err != nil {
-		log.Fatal("Cannot connect to the db: ", err)
+		log.Fatal().Err(err).Msg("Cannot connect to the db")
 	}
 	defer conn.Close()
 
@@ -48,77 +52,66 @@ func main() {
 }
 
 func runDBMigration(migrationURL string, dbSource string) {
-	log.Println("Starting db migration ...")
+	log.Info().Msg("Starting db migration ...")
 	migration, err := migrate.New(migrationURL, dbSource)
 	if err != nil {
-		log.Fatal("cannot create new migrate instance", err)
+		log.Fatal().Err(err).Msg("cannot create new migrate instance")
 	}
 
 	// its not clear to me why there would be an error return if there is no change!
 	if err = migration.Up(); err != nil && err != migrate.ErrNoChange {
-		log.Fatal("failed to run migrate up", err)
+		log.Fatal().Err(err).Msg("failed to run migrate up")
 	}
 
-	log.Println("db migrated successfully")
+	log.Info().Msg("db migrated successfully")
 }
 
 // TODO: setup this on config or something :-)
 func runGinServer(config util.Config, store db.Store) {
 	server, err := api.NewServer(config, store)
 	if err != nil {
-		log.Fatal("cannot create a new server", err)
+		log.Fatal().Err(err).Msg("cannot create a new server")
 	}
 
 	err = server.Run(config.HttpServerAddress)
 	if err != nil {
-		log.Fatal("cannot run a new server", err)
+		log.Fatal().Err(err).Msg("cannot run a new server")
 	}
 }
 
 func runGrpcServer(config util.Config, store db.Store) {
-	_ = os.Setenv("GRPC_GO_LOG_LEVEL", "debug")
-	_ = os.Setenv("GRPC_GO_LOG_SEVERITY_LEVEL", "debug")
-	_ = os.Setenv("GRPC_TRACE", "all")
-	_ = os.Setenv("GRPC_VERBOSITY_LEVEL", "debug")
-
-	logger := log.Default() // This is the standard Go logger, you can replace it with logrus or zap
-	grpclog.SetLoggerV2(grpclog.NewLoggerV2(logger.Writer(), logger.Writer(), logger.Writer()))
-
 	server, err := gapi.NewServer(config, store)
 	if err != nil {
-		log.Fatal("cannot create a new server", err)
+		log.Fatal().Err(err).Msg("cannot create a new server")
 	}
 
-	grpcServer := grpc.NewServer()
+	gprcLogger := grpc.UnaryInterceptor(gapi.GrpcLogger)
+	grpcServer := grpc.NewServer(gprcLogger)
+
 	pb.RegisterSimpleBankServer(grpcServer, server)
-	// Reflection allows you to interactively query the service using tools like Evans.
-	// This should be removed in production to avoid exposing your service details.
 	if config.EnableReflection {
-		log.Println("Enabling gRPC reflection...")
+		log.Info().Msg("Enabling gRPC reflection...")
 		reflection.Register(grpcServer)
 	} else {
-		log.Println("Reflection is disabled for security reasons.")
+		log.Fatal().Err(err).Msg("Reflection is disabled for security reasons.")
 	}
 
 	listener, err := net.Listen("tcp", config.GrpcServerAddress)
 	if err != nil {
-		log.Fatal("cannot create listener", err)
+		log.Fatal().Err(err).Msg("cannot create listener")
 	}
-	log.Printf("start gRPC listener server at %s", config.GrpcServerAddress)
+	log.Info().Msgf("start gRPC listener server at %s", config.GrpcServerAddress)
 
 	err = grpcServer.Serve(listener)
 	if err != nil {
-		log.Fatal("gRPC server failed to serve", err)
+		log.Fatal().Err(err).Msg("gRPC server failed to serve")
 	}
 }
 
 func runGatewayServer(config util.Config, store db.Store) {
-	logger := log.Default() // This is the standard Go logger, you can replace it with logrus or zap
-	grpclog.SetLoggerV2(grpclog.NewLoggerV2(logger.Writer(), logger.Writer(), logger.Writer()))
-
 	server, err := gapi.NewServer(config, store)
 	if err != nil {
-		log.Fatal("cannot create a new server", err)
+		log.Fatal().Err(err).Msg("cannot create a new server")
 	}
 
 	// enable snake case as per proto files - see gateway doco
@@ -138,7 +131,7 @@ func runGatewayServer(config util.Config, store db.Store) {
 
 	err = pb.RegisterSimpleBankHandlerServer(ctx, grpcMux, server)
 	if err != nil {
-		log.Fatalln("cannot register handler server", err)
+		log.Fatal().Err(err).Msg("cannot register handler server")
 	}
 
 	mux := http.NewServeMux()
@@ -146,7 +139,7 @@ func runGatewayServer(config util.Config, store db.Store) {
 
 	statikFS, err := fs.New()
 	if err != nil {
-		log.Fatal("cannot create statik fs", err)
+		log.Fatal().Err(err).Msg("cannot create statik fs")
 	}
 
 	swaggerHandler := http.StripPrefix("/swagger/", http.FileServer(statikFS))
@@ -154,12 +147,12 @@ func runGatewayServer(config util.Config, store db.Store) {
 
 	listener, err := net.Listen("tcp", config.HttpServerAddress)
 	if err != nil {
-		log.Fatal("cannot create http listener", err)
+		log.Fatal().Err(err).Msg("cannot create http listener")
 	}
-	log.Printf("start Http Gateway server at %s", listener.Addr().String())
+	log.Info().Msgf("start Http Gateway server at %s", listener.Addr().String())
 
 	err = http.Serve(listener, mux)
 	if err != nil {
-		log.Fatal("gRPC Http Gateway failed to serve", err)
+		log.Fatal().Err(err).Msg("gRPC Http Gateway failed to serve")
 	}
 }
