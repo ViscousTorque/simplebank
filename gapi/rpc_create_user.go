@@ -29,14 +29,28 @@ func (server *Server) CreateUser(ctx context.Context, request *pb.CreateUserRequ
 		return nil, status.Errorf(codes.Internal, "password hash failed: %s", err)
 	}
 
-	args := db.CreateUserParams{
-		Username:       request.GetUsername(),
-		HashedPassword: hashedPassword,
-		FullName:       request.GetFullName(),
-		Email:          request.GetEmail(),
+	arg := db.CreateUserTxParams{
+		CreateUserParams: db.CreateUserParams{
+			Username:       request.GetUsername(),
+			HashedPassword: hashedPassword,
+			FullName:       request.GetFullName(),
+			Email:          request.GetEmail(),
+		},
+		AfterCreate: func(user db.User) error {
+			taskPayload := &worker.PayloadSendVerifyEmail{
+				Username: user.Username,
+			}
+			opts := []asynq.Option{
+				asynq.MaxRetry(10),
+				asynq.ProcessIn(10 * time.Second),
+				asynq.Queue(worker.QueueCritical),
+			}
+
+			return server.taskDistributor.DistributeTaskSendVerifyEmail(ctx, taskPayload, opts...)
+		},
 	}
 
-	user, err := server.store.CreateUser(ctx, args)
+	txResult, err := server.store.CreateUserTx(ctx, arg)
 	if err != nil {
 		errCode := db.ErrorCode(err)
 		log.Printf("Error detected. errCode: %v, original error: %v", errCode, err)
@@ -46,41 +60,26 @@ func (server *Server) CreateUser(ctx context.Context, request *pb.CreateUserRequ
 		return nil, status.Errorf(codes.Internal, "failed to create user: %s", err)
 	}
 
-	// TODO: use db transaction, otherwise in case of db error we will have duplicates
-	taskPayload := &worker.PayloadSendVerifyEmail{
-		Username: user.Username,
-	}
-
-	opts := []asynq.Option{
-		asynq.MaxRetry(10),
-		asynq.ProcessIn(10 * time.Second),
-		asynq.Queue(worker.QueueCritical),
-	}
-	err = server.taskDistributor.DistributeTaskSendVerifyEmail(ctx, taskPayload, opts...) // use default opts
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to distrubute task to send verify email: %s", err)
-	}
-
 	response := &pb.CreateUserResponse{
-		User: convertUser(user),
+		User: convertUser(txResult.User),
 	}
 	return response, nil
 }
 
-func validateCreateUserRequest(req *pb.CreateUserRequest) (violations []*errdetails.BadRequest_FieldViolation) {
-	if err := val.ValidateUsername(req.GetUsername()); err != nil {
+func validateCreateUserRequest(request *pb.CreateUserRequest) (violations []*errdetails.BadRequest_FieldViolation) {
+	if err := val.ValidateUsername(request.GetUsername()); err != nil {
 		violations = append(violations, fieldViolation("username", err))
 	}
 
-	if err := val.ValidatePassword(req.GetPassword()); err != nil {
+	if err := val.ValidatePassword(request.GetPassword()); err != nil {
 		violations = append(violations, fieldViolation("password", err))
 	}
 
-	if err := val.ValidateFullName(req.GetFullName()); err != nil {
+	if err := val.ValidateFullName(request.GetFullName()); err != nil {
 		violations = append(violations, fieldViolation("full_name", err))
 	}
 
-	if err := val.ValidateEmail(req.GetEmail()); err != nil {
+	if err := val.ValidateEmail(request.GetEmail()); err != nil {
 		violations = append(violations, fieldViolation("email", err))
 	}
 
