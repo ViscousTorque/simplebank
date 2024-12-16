@@ -3,11 +3,15 @@ package gapi
 import (
 	"context"
 	"log"
+	"time"
+
 	db "simplebank/db/sqlc"
 	"simplebank/pb"
 	"simplebank/util"
 	"simplebank/val"
+	"simplebank/worker"
 
+	"github.com/hibiken/asynq"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -40,6 +44,21 @@ func (server *Server) CreateUser(ctx context.Context, request *pb.CreateUserRequ
 			return nil, status.Errorf(codes.AlreadyExists, "username already exists: %s", err)
 		}
 		return nil, status.Errorf(codes.Internal, "failed to create user: %s", err)
+	}
+
+	// TODO: use db transaction, otherwise in case of db error we will have duplicates
+	taskPayload := &worker.PayloadSendVerifyEmail{
+		Username: user.Username,
+	}
+
+	opts := []asynq.Option{
+		asynq.MaxRetry(10),
+		asynq.ProcessIn(10 * time.Second),
+		asynq.Queue(worker.QueueCritical),
+	}
+	err = server.taskDistributor.DistributeTaskSendVerifyEmail(ctx, taskPayload, opts...) // use default opts
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to distrubute task to send verify email: %s", err)
 	}
 
 	response := &pb.CreateUserResponse{

@@ -31,7 +31,12 @@ func NewRedisTaskProcessor(redisOpt asynq.RedisClientOpt, store db.Store) TaskPr
 
 	server := asynq.NewServer(
 		redisOpt,
-		asynq.Config{}, // for now lets use the default settings
+		asynq.Config{
+			Queues: map[string]int{
+				QueueCritical: 10,
+				QueueDefault:  5,
+			},
+		},
 	)
 
 	return &RedisTaskProcessor{
