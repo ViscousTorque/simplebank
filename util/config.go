@@ -1,6 +1,8 @@
 package util
 
 import (
+	"fmt"
+	"log"
 	"time"
 
 	"github.com/spf13/viper"
@@ -18,20 +20,44 @@ type Config struct {
 	AccessTokenDuration  time.Duration `mapstructure:"ACCESS_TOKEN_DURATION"`
 	RefreshTokenDuration time.Duration `mapstructure:"REFRESH_TOKEN_DURATION"`
 	EnableReflection     bool          `mapstructure:"ENABLE_REFLECTION"`
+	EmailSenderName      string        `mapstructure:"EMAIL_SENDER_NAME"`
+	EmailSenderAddress   string        `mapstructure:"EMAIL_SENDER_ADDRESS"`
+	EmailSenderPassword  string        `mapstructure:"EMAIL_SENDER_PASSWORD"`
+	EmailTestRecipient   string        `mapstructure:"EMAIL_TEST_RECIPIENT"`
 }
 
-// loadConfig - read from file or env vars
+// LocalConfig - setting app.env.local file for local testing of email sending using sensitive data
 func LoadConfig(path string) (config Config, err error) {
-	viper.AddConfigPath(path)
-	viper.SetConfigName("app")
-	viper.SetConfigType("env")
+	// List of files to load, in the order of precedence
+	envFiles := []string{
+		"app.env",       // Load defaults first
+		"app.local.env", // Load local-specific overrides last
+	}
+
+	// Load each file in order of precedence
+	for _, fileName := range envFiles {
+		viper.SetConfigFile(fmt.Sprintf("%s/%s", path, fileName))
+
+		// Read the configuration file
+		if err := viper.MergeInConfig(); err != nil {
+			// Ignore errors if the file doesn't exist (optional)
+			if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+				log.Printf("File %s not found, skipping", fileName)
+				continue
+			} else {
+				return config, fmt.Errorf("error loading %s: %w", fileName, err)
+			}
+		} else {
+			log.Printf("Loaded config file: %s", fileName)
+		}
+	}
 
 	viper.AutomaticEnv()
 
-	err = viper.ReadInConfig()
-	if err != nil {
-		return
-	}
 	err = viper.Unmarshal(&config)
+	if err != nil {
+		return config, fmt.Errorf("unable to decode config into struct: %w", err)
+	}
+
 	return
 }
