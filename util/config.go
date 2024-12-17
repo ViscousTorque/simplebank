@@ -31,16 +31,14 @@ func LoadConfig(path string) (config Config, err error) {
 	// List of files to load, in the order of precedence
 	envFiles := []string{
 		"app.env",       // Load defaults first
-		"app.local.env", // Load local-specific overrides last
+		"app.local.env", // Load local-sensitive overrides (from GitHub CI/CD)
 	}
 
-	// Load each file in order of precedence
 	for _, fileName := range envFiles {
 		viper.SetConfigFile(fmt.Sprintf("%s/%s", path, fileName))
+		viper.SetConfigType("env") // Explicitly set the type as "env" for .env files
 
-		// Read the configuration file
 		if err := viper.MergeInConfig(); err != nil {
-			// Ignore errors if the file doesn't exist (optional)
 			if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 				log.Printf("File %s not found, skipping", fileName)
 				continue
@@ -59,5 +57,5 @@ func LoadConfig(path string) (config Config, err error) {
 		return config, fmt.Errorf("unable to decode config into struct: %w", err)
 	}
 
-	return
+	return config, nil
 }
