@@ -68,7 +68,7 @@ db_docs:
 
 db_schema:
 	dbml2sql --postgres -o doc/schema.sql doc/db.dbml
-
+	
 sqlcgen:
 	docker run --rm -v $(PWD):/src -w /src sqlc/sqlc generate
 
