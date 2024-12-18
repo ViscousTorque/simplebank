@@ -10,6 +10,7 @@ import (
 	db "simplebank/db/sqlc"
 	_ "simplebank/doc/statik"
 	"simplebank/gapi"
+	"simplebank/mail"
 	"simplebank/pb"
 	"simplebank/util"
 	"simplebank/worker"
@@ -55,14 +56,15 @@ func main() {
 	taskDistributor := worker.NewRedisTaskDistributor(redisOpts)
 
 	//TODO: use wait group here for better shutdown handling!
-	go runTaskProcessor(redisOpts, store) // go routine, because redis will block and keep polling for new tasks
+	go runTaskProcessor(config, redisOpts, store) // go routine, because redis will block and keep polling for new tasks
 	go runGrpcServer(config, store, taskDistributor)
 	runGatewayServer(config, store, taskDistributor)
 	// runGinServer(config, store)
 }
 
-func runTaskProcessor(redisOpt asynq.RedisClientOpt, store db.Store) {
-	taskProcessor := worker.NewRedisTaskProcessor(redisOpt, store)
+func runTaskProcessor(config util.Config, redisOpt asynq.RedisClientOpt, store db.Store) {
+	mailer := mail.NewGmailSender(config.EmailSenderName, config.EmailSenderAddress, config.EmailSenderPassword)
+	taskProcessor := worker.NewRedisTaskProcessor(redisOpt, store, mailer)
 
 	log.Info().Msg("start task processor")
 	err := taskProcessor.Start()
