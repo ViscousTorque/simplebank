@@ -8,6 +8,7 @@ import "protoc-gen-openapiv2/options/annotations.proto";
 import "rpc_create_user.proto";
 import "rpc_login_user.proto";
 import "rpc_update_user.proto";
+import "rpc_verify_email.proto";
 
 option go_package = "simplebank/pb";
 
@@ -30,7 +31,7 @@ service SimpleBank {
             body: "*"
         };
         option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-            description: "Use this API to create a new user",
+            description: "Use this post API to create a new user",
             summary: "Create new user"
         };
     }
@@ -40,7 +41,7 @@ service SimpleBank {
             body: "*"
         };
         option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-            description: "Use this API to update user",
+            description: "Use this patch API to update user",
             summary: "Update user"
         };
     }
@@ -50,8 +51,18 @@ service SimpleBank {
             body: "*"
         };
         option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-            description: "Use this API to login user and get access token & refresh token",
+            description: "Use this post API to login user and receive access token & refresh token",
             summary: "Login user"
+        };
+    }
+
+    rpc VerifyEmail (VerifyEmailRequest) returns (VerifyEmailResponse) {
+        option (google.api.http) = {
+            get: "/v1/verify_email",
+        };
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+            description: "Use this post API to verify use email",
+            summary: "Verify email"
         };
     }
 }
