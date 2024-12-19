@@ -33,6 +33,19 @@ services:
     volumes:
       - udemy_simplebank_pgadmin-data:/var/lib/pgadmin
 
+  redis:
+    image: redis:7-alpine
+    networks:
+      - bank-network
+    ports:
+      - "6379:6379"
+      - "53"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   api:
     build:
       context: .
@@ -47,6 +60,8 @@ services:
       - REDIS_ADDRESS=redis:6379
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     entrypoint:
       [
