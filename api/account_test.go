@@ -36,7 +36,7 @@ func TestGetAccountAPI(t *testing.T) {
 			name:      "OK",
 			accountID: account.ID,
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuthorisation(t, request, tokenMaker, authorisationTypeBearer, user.Username, time.Minute)
+				addAuthorisation(t, request, tokenMaker, authorisationTypeBearer, user.Username, user.Role, time.Minute)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
@@ -53,7 +53,7 @@ func TestGetAccountAPI(t *testing.T) {
 			name:      "NotFound",
 			accountID: account.ID,
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuthorisation(t, request, tokenMaker, authorisationTypeBearer, user.Username, time.Minute)
+				addAuthorisation(t, request, tokenMaker, authorisationTypeBearer, user.Username, user.Role, time.Minute)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
@@ -69,7 +69,7 @@ func TestGetAccountAPI(t *testing.T) {
 			name:      "InternalError",
 			accountID: account.ID,
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuthorisation(t, request, tokenMaker, authorisationTypeBearer, user.Username, time.Minute)
+				addAuthorisation(t, request, tokenMaker, authorisationTypeBearer, user.Username, user.Role, time.Minute)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
@@ -85,7 +85,7 @@ func TestGetAccountAPI(t *testing.T) {
 			name:      "InvalidID",
 			accountID: 0,
 			setupAuth: func(t *testing.T, request *http.Request, tokenMaker token.Maker) {
-				addAuthorisation(t, request, tokenMaker, authorisationTypeBearer, user.Username, time.Minute)
+				addAuthorisation(t, request, tokenMaker, authorisationTypeBearer, user.Username, user.Role, time.Minute)
 			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
