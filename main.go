@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"net"
 	"net/http"
 	"os"
@@ -24,6 +25,7 @@ import (
 	"github.com/rakyll/statik/fs"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -32,7 +34,12 @@ import (
 func main() {
 	config, err := util.LoadConfig(".")
 	if err != nil {
-		log.Fatal().Err(err).Msg("cannot load config")
+		var notFoundErr *viper.ConfigFileNotFoundError
+		if errors.As(err, &notFoundErr) {
+			log.Warn().Msgf("Config file not found, but continuing with defaults: %v", notFoundErr)
+		} else {
+			log.Fatal().Err(err).Msg("Cannot load config")
+		}
 	}
 
 	if config.Environment == "development" {

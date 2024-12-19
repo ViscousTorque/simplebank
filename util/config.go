@@ -1,8 +1,10 @@
 package util
 
 import (
+	"errors"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/spf13/viper"
@@ -10,7 +12,6 @@ import (
 
 type Config struct {
 	Environment          string        `mapstructure:"ENVIRONMENT"`
-	DBDriver             string        `mapstructure:"DB_DRIVER"` // Matches DB_DRIVER in app.env
 	DBSource             string        `mapstructure:"DB_SOURCE"` // Matches DB_SOURCE in app.env
 	MigrationURL         string        `mapstructure:"MIGRATION_URL"`
 	HttpServerAddress    string        `mapstructure:"HTTP_SERVER_ADDRESS"` // Matches HTTP_SERVER_ADDRESS in app.env
@@ -28,22 +29,26 @@ type Config struct {
 
 // LocalConfig - setting app.env.local file for local testing of email sending using sensitive data
 func LoadConfig(path string) (config Config, err error) {
-	// List of files to load, in the order of precedence
 	envFiles := []string{
 		"app.env",       // Load defaults first
-		"app.local.env", // Load local-sensitive overrides (from GitHub CI/CD)
+		"app.local.env", // Load local-sensitive overrides
 	}
 
 	for _, fileName := range envFiles {
 		viper.SetConfigFile(fmt.Sprintf("%s/%s", path, fileName))
-		viper.SetConfigType("env") // Explicitly set the type as "env" for .env files
+		viper.SetConfigType("env")
 
 		if err := viper.MergeInConfig(); err != nil {
-			if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-				log.Printf("File %s not found, skipping", fileName)
-				continue
-			} else {
-				return config, fmt.Errorf("error loading %s: %w", fileName, err)
+			var notFoundErr *viper.ConfigFileNotFoundError
+			var pathErr *os.PathError
+
+			if errors.As(err, &notFoundErr) {
+				log.Printf("INFO: File %s not found, skipping", fileName)
+				continue // File not found, so skip it
+			}
+			if errors.As(err, &pathErr) && os.IsNotExist(pathErr) {
+				log.Printf("INFO: File %s not found, skipping", fileName)
+				continue // File not found, so skip it
 			}
 		} else {
 			log.Printf("Loaded config file: %s", fileName)

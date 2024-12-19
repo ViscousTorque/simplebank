@@ -99,6 +99,13 @@ proto:
 	statik -src=./doc/swagger -dest=./doc
 
 redis:
-	docker run --name redis -p 6379:6379 -d redis:7-alpine
+	docker run --rm --name redis -p 6379:6379 -d redis:7-alpine
 
-.PHONY: network postgres mysql8up mysql createdb dropdb migrateup migratedown migrateUpVersion migrateDownVersion new_migration db_docs db_schema sqlcgen sqlcinit test server docServer mock proto redis stopdb
+startTestEnv:
+	@$(MAKE) postgres
+	@sleep 2
+	@$(MAKE) pgadmin4
+	@sleep 2
+	@$(MAKE) redis
+
+.PHONY: startTestEnv network postgres mysql8up mysql createdb dropdb migrateup migratedown migrateUpVersion migrateDownVersion new_migration db_docs db_schema sqlcgen sqlcinit test server docServer mock proto redis stopdb
