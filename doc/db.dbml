@@ -6,6 +6,7 @@ Project simple_bank {
 }
 Table "users" {
   username varchar [pk]
+  role varchar [not null, default: 'depositor']
   hashed_password varchar [not null]
   full_name varchar [not null]
   email varchar [not null, unique]
