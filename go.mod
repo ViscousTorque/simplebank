@@ -22,6 +22,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/techschool/simplebank v0.0.0-20240804143235-cc1ef6d0b5dd
 	golang.org/x/crypto v0.30.0
+	golang.org/x/sync v0.10.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20240903143218-8af14fe29dc1
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240903143218-8af14fe29dc1
 	google.golang.org/grpc v1.68.1
@@ -79,7 +80,6 @@ require (
 	golang.org/x/arch v0.8.0 // indirect
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9 // indirect
 	golang.org/x/net v0.29.0 // indirect
-	golang.org/x/sync v0.10.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
