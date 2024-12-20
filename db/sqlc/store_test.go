@@ -24,7 +24,7 @@ func TestTransferTx(t *testing.T) {
 	errs := make(chan error)
 	testResults := make(chan TransferTxResult)
 
-	for i := 0; i < numberTestGoRoutines; i++ {
+	for i := range numberTestGoRoutines {
 		txName := fmt.Sprintf("tx %d", i)
 		go func() {
 			ctx := context.WithValue(context.Background(), txKey, txName)
@@ -43,7 +43,7 @@ func TestTransferTx(t *testing.T) {
 	existed := make(map[int]bool) // TODO: need to check if this concurrent safe
 
 	// Verify the results
-	for i := 0; i < numberTestGoRoutines; i++ {
+	for range numberTestGoRoutines {
 		actualErr := <-errs
 		require.NoError(t, actualErr)
 
@@ -132,7 +132,7 @@ func TestTransferTxDeadlock(t *testing.T) {
 
 	errs := make(chan error)
 
-	for i := 0; i < numberTestGoRoutines; i++ {
+	for i := range numberTestGoRoutines {
 		testFromAccountId := testFromAccount.ID
 		testToAccountId := testToAccount.ID
 
@@ -155,7 +155,7 @@ func TestTransferTxDeadlock(t *testing.T) {
 	}
 
 	// Verify the results
-	for i := 0; i < numberTestGoRoutines; i++ {
+	for range numberTestGoRoutines {
 		actualErr := <-errs
 		require.NoError(t, actualErr)
 	}

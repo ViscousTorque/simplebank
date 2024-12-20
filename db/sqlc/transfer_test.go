@@ -56,7 +56,7 @@ func TestListTransfer(t *testing.T) {
 	account1 := createRandomAccount(t)
 	account2 := createRandomAccount(t)
 
-	for i := 0; i < 5; i++ {
+	for range 5 {
 		createRandomTransfer(t, account1, account2)
 		createRandomTransfer(t, account2, account1)
 	}
