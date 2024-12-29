@@ -4,7 +4,7 @@
 
 This branch is an extension of the original repository, maintained by [TechSchool](https://github.com/techschool) and [Quang Pham](https://github.com/phamlequang)
 
-The purpose of this branch is to explore and build upon their work [Backend Master Class](https://github.com/techschool/simplebank) and [Front End Crash](https://www.youtube.com/playlist?list=PLy_6D98if3UI3rsFRTHM1LMtVprYMp-GT) Course by introducing new ideas, changes, features, improvements, or exploring new directions for this project.
+The purpose of this branch is to explore and build upon their work [Backend Master Class](https://github.com/techschool/simplebank) and [Front End Crash](https://www.youtube.com/playlist?list=PLy_6D98if3UI3rsFRTHM1LMtVprYMp-GT) Courses by introducing new ideas, changes, features, improvements, or exploring new directions for this project.
 
 ## Next Steps
 
@@ -17,7 +17,7 @@ The purpose of this branch is to explore and build upon their work [Backend Mast
 
 - Complete the Front End Crash Course
     - Start and add the crash course code
-    - Explore the VUE js code
+    - Explore and extend the VUE js code
 
 - Documentation Updates:
     - I will update aim to share any new instructions here
@@ -27,5 +27,6 @@ The purpose of this branch is to explore and build upon their work [Backend Mast
 - Branches:
     - Main: Any diversions or additions to the original fork and Udemy which intended to be shared with the author for future considerations.
         - Terraform : Adding initial terraform files for: secrets manager, RDS (will need to change subnet setup) and ECR
-    - Udemy: Following the Udemy course step by step and adding the code after each section I complete.  This code is not yet exhaustively commplete with unit tests and app code.
+        - This code is not yet exhaustively commplete with unit tests and app code, so add more features and tests as I explore the frontend and aws resources.
+    - Udemy: Following the Udemy course step by step and adding the code after each section I complete.  This code is not yet exhaustively complete with unit tests and app code.
     - Master: Fork of the Backend Master Class code
