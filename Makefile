@@ -24,6 +24,9 @@ pgadmin4:
   -v pgadmin-data:/var/lib/pgadmin \
   dpage/pgadmin4
 
+redis:
+	docker run -d --rm --name redis -p 6379:6379 -d redis:7-alpine
+
 mysql8up:
 	docker run --rm --name mysql8 -p 3306:3306 \
 	-e MYSQL_ROOT_PASSWORD=adminSecret \
@@ -97,9 +100,6 @@ proto:
 	--openapiv2_out=doc/swagger --openapiv2_opt=allow_merge=true,merge_file_name=simple_bank \
 	proto/*.proto
 	statik -src=./doc/swagger -dest=./doc
-
-redis:
-	docker run --rm --name redis -p 6379:6379 -d redis:7-alpine
 
 startTestEnv:
 	@$(MAKE) postgres
