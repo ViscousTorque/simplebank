@@ -4,10 +4,18 @@ import InputGroupAddon from 'primevue/inputgroupaddon'
 import InputText from 'primevue/inputtext'
 import FloatLabel from 'primevue/floatlabel';
 import Button from 'primevue/button';
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
+import axios from 'axios'
+
 const username = ref<string>('')
 const password = ref<string>('')
-const isLoginDisabled = computed(() => !username.value || !password.value)
+const handleLogin = async () => {
+  const response = await axios.post('http://localhost:8080/v1/login_user',
+      {
+        username: username.value,
+        password: password.value
+      },)
+  }
 </script>
 
 <template>  
@@ -30,7 +38,7 @@ const isLoginDisabled = computed(() => !username.value || !password.value)
         <label for="password">Password</label>
       </FloatLabel>
     </InputGroup>
-    <Button label="Login" :disabled="isLoginDisabled" />
+    <Button label="Login" @click="handleLogin"/>
   </div>
 </template>
 
