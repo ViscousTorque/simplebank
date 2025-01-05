@@ -2,6 +2,8 @@
 import Card from 'primevue/card'
 import type { PropType } from 'vue'
 import type { User } from '@/types/user'
+import Divider from 'primevue/divider'
+import Button from 'primevue/button'
 
 const props = defineProps({
   user: {
@@ -9,6 +11,12 @@ const props = defineProps({
     required: true
   }
 })
+
+const emit = defineEmits<{
+  (e: 'logout', user: User): void
+}>()
+
+const onLogout = () => emit('logout', props.user)
 </script>
 
 <template>
@@ -29,4 +37,6 @@ const props = defineProps({
       </div>
     </template>
   </Card>
+  <Divider/>
+  <Button label="Logout" icon="pi pi-sign-out" @click="onLogout" />
 </template>
