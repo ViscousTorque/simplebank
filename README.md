@@ -13,20 +13,24 @@ The purpose of this branch is to explore and build upon their work [Backend Mast
     - Adding component tests, extending the current docker compose file to inc lude tests
     
 - Complete the Udemy Course:
-    - Complete the course: EKS, manage K8sm, deploy web app, auto TLS, Front End, CORS
+    - Complete the course: EKS, manage K8sm, deploy web app, auto TLS
 
-- Complete the Front End Crash Course
-    - Start and add the crash course code
-    - Explore and extend the VUE js code
+- Having completed the Front End Crash Course:
+    - Explore and extend the VUE js code to include other workflows:
+        - Create User
+        - Balance Transfers
+    - Add some tests
 
 - Documentation Updates:
-    - I will update aim to share any new instructions here
+    - I aim to share any new instructions here
 
 ### So far
 
 - Branches:
     - Main: Any diversions or additions to the original fork and Udemy which intended to be shared with the author for future considerations.
         - Terraform : Adding initial terraform files for: secrets manager, RDS (will need to change subnet setup) and ECR
-        - This code is not yet exhaustively commplete with unit tests and app code, so add more features and tests as I explore the frontend and aws resources.
-    - Udemy: Following the Udemy course step by step and adding the code after each section I complete.  This code is not yet exhaustively complete with unit tests and app code.
+        - This code is not yet exhaustively complete with unit tests and app code, so add more features and tests as I explore the frontend and aws resources.
+    - Udemy: Following the Udemy course step by step and adding the code after each section I complete.  
+        - This code is not yet exhaustively complete with unit tests and app code.
+        - Code from following the youtube Frontend Crash Course included.
     - Master: Fork of the Backend Master Class code
