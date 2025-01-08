@@ -14,4 +14,4 @@ spec:
       port: 90
       targetPort: 9090
       name: grpc-service
-  type: LoadBalancer
+  type: ClusterIP
