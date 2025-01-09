@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"reflect"
 	"time"
 
 	"github.com/spf13/viper"
@@ -61,6 +62,28 @@ func LoadConfig(path string) (config Config, err error) {
 	err = viper.Unmarshal(&config)
 	if err != nil {
 		return config, fmt.Errorf("unable to decode config into struct: %w", err)
+	}
+
+	// Redact sensitive fields
+	redactedConfig := config
+	redactedConfig.TokenSymmetricKey = "[REDACTED]"
+	redactedConfig.EmailSenderPassword = "[REDACTED]"
+	redactedConfig.EmailSenderAddress = "[REDACTED]"
+	redactedConfig.EmailTestRecipient = "[REDACTED]"
+	// redactedConfigJSON, err := json.MarshalIndent(redactedConfig, "", "  ")
+
+	if err != nil {
+		log.Fatalf("Failed to serialize config: %v", err)
+	}
+
+	// Use reflection to iterate over struct fields
+	v := reflect.ValueOf(redactedConfig)
+	t := reflect.TypeOf(redactedConfig)
+
+	for i := 0; i < v.NumField(); i++ {
+		fieldName := t.Field(i).Name
+		fieldValue := v.Field(i).Interface()
+		log.Printf("%s: %v\n", fieldName, fieldValue)
 	}
 
 	return config, nil
