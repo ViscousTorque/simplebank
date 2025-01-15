@@ -1,0 +1,36 @@
+module "rds" {
+  source  = "terraform-aws-modules/rds/aws"
+  version = "6.10.0"
+
+  apply_immediately                     = "true"
+  allocated_storage                     = "20"
+  auto_minor_version_upgrade            = "false"
+  availability_zone                     = var.rds_availability_zone
+  backup_retention_period               = "0"
+  db_name                               = var.db_name 
+  db_subnet_group_name                  = var.rds_db_subnet_group_name
+  deletion_protection                   = "false"
+  engine                                = var.engine        
+  engine_version                        = var.engine_version 
+  family                                = var.rds_db_family  
+  identifier                            = var.instance_identifier 
+  instance_class                        = "db.t4g.micro"
+  iops                                  = "0"
+  subnet_ids                            = var.rds_subnet_ids
+  maintenance_window                    = "wed:00:07-wed:00:37"
+  manage_master_user_password = false
+  max_allocated_storage                 = "100"
+  monitoring_interval                   = "0"
+  multi_az                              = false
+  network_type                          = "IPV4"
+  password                              = var.rds_db_user_password
+  performance_insights_enabled          = true
+  performance_insights_retention_period = "7"
+  port                                  = "5432"
+  publicly_accessible                   = true
+  storage_encrypted                     = true
+  storage_throughput                    = "0"
+  storage_type                          = "gp2"
+  username                              = var.rds_db_username       
+  vpc_security_group_ids                = var.vpc_security_group_ids 
+}

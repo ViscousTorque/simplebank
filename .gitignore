@@ -1,4 +1,3 @@
-*.log
 .vscode
 app.local.env
 
@@ -17,3 +16,14 @@ dist
 dist-ssr
 coverage
 *.local
+
+# terraform / terraformer
+*.tfvars
+*.plan
+terraform.tfstate
+terraform.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate*
+generated
+
