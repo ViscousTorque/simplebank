@@ -1,5 +1,7 @@
 # Simple Bank - Front End and Back End
 
+This repository contains the codes of the [Backend Master Class](https://bit.ly/backendmaster) course by [TECH SCHOOL](https://bit.ly/m/techschool).
+
 ## Introduction
 
 This branch is an extension of the original repository, maintained by [TechSchool](https://github.com/techschool) and [Quang Pham](https://github.com/phamlequang)
