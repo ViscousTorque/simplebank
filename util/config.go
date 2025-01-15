@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"reflect"
 	"time"
 
 	"github.com/spf13/viper"
@@ -12,6 +13,7 @@ import (
 
 type Config struct {
 	Environment          string        `mapstructure:"ENVIRONMENT"`
+	AllowedOrigins       []string      `mapstructure:"ALLOWED_ORIGINS"`
 	DBSource             string        `mapstructure:"DB_SOURCE"` // Matches DB_SOURCE in app.env
 	MigrationURL         string        `mapstructure:"MIGRATION_URL"`
 	HttpServerAddress    string        `mapstructure:"HTTP_SERVER_ADDRESS"` // Matches HTTP_SERVER_ADDRESS in app.env
@@ -60,6 +62,28 @@ func LoadConfig(path string) (config Config, err error) {
 	err = viper.Unmarshal(&config)
 	if err != nil {
 		return config, fmt.Errorf("unable to decode config into struct: %w", err)
+	}
+
+	// Redact sensitive fields
+	redactedConfig := config
+	redactedConfig.TokenSymmetricKey = "[REDACTED]"
+	redactedConfig.EmailSenderPassword = "[REDACTED]"
+	redactedConfig.EmailSenderAddress = "[REDACTED]"
+	redactedConfig.EmailTestRecipient = "[REDACTED]"
+	// redactedConfigJSON, err := json.MarshalIndent(redactedConfig, "", "  ")
+
+	if err != nil {
+		log.Fatalf("Failed to serialize config: %v", err)
+	}
+
+	// Use reflection to iterate over struct fields
+	v := reflect.ValueOf(redactedConfig)
+	t := reflect.TypeOf(redactedConfig)
+
+	for i := 0; i < v.NumField(); i++ {
+		fieldName := t.Field(i).Name
+		fieldValue := v.Field(i).Interface()
+		log.Printf("%s: %v\n", fieldName, fieldValue)
 	}
 
 	return config, nil

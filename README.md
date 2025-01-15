@@ -1,5 +1,7 @@
 # Simple Bank - Front End and Back End
 
+This repository contains the codes of the [Backend Master Class](https://bit.ly/backendmaster) course by [TECH SCHOOL](https://bit.ly/m/techschool).
+
 ## Introduction
 
 This branch is an extension of the original repository, maintained by [TechSchool](https://github.com/techschool) and [Quang Pham](https://github.com/phamlequang)
@@ -14,9 +16,7 @@ The purpose of this branch is to explore and build upon their work [Backend Mast
         - Also add a lower cost deployment for development and test purposes
     - Adding component tests: 
         - extending the current docker compose file to include a container running a number of component tests
-        - maybe include some basic UI tests with Selenium 
-    
-
+        - maybe include some basic UI tests with Selenium
     - Having completed the Front End Crash Course:
         - Explore and extend the VUE js code to include other workflows:
             - Create User
@@ -25,7 +25,7 @@ The purpose of this branch is to explore and build upon their work [Backend Mast
         - Add front end AWS deployment to the terraform
 
 - Documentation Updates:
-    - I will update aim to share any new instructions here
+    - I aim to share any new instructions here
 
 ### So far
 

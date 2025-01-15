@@ -5,9 +5,9 @@ name: Run Unit Tests
 
 on:
   push:
-    branches: [ "udemy" ]
+    branches: [ "udemy", "main" ]
   pull_request:
-    branches: [ "udemy" ]
+    branches: [ "udemy", "main" ]
 
 jobs:
 
