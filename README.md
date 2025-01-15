@@ -33,8 +33,6 @@ The purpose of this branch is to explore and build upon their work [Backend Mast
     - **Main**: Any diversions or additions to the original fork and Udemy which intended to be shared with the author for future considerations.
         - Terraform : Adding initial terraform files for: secrets manager, RDS (will need to change subnet setup) and ECR
         - This code is not yet exhaustively commplete with unit tests and app code, so add more features and tests as I explore the frontend and aws resources.
-    - **Master**: Fork of the Backend Master Class code
-        - This code is not yet exhaustively complete with unit tests and app code, so add more features and tests as I explore the frontend and aws resources.
     - **Udemy**: Following the Udemy course step by step and adding the code commits after each section I complete.  
         - This code is not yet exhaustively complete with unit tests and app code.
         - Code from following the youtube Frontend Crash Course included.
