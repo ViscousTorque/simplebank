@@ -89,7 +89,7 @@ docServer:
 
 mock:
 	~/go/bin/mockgen -package mockdb --destination db/mock/store.go simplebank/db/sqlc Store
-	~/go/bin/mockgen -package mockwk -destination worker/mock/distributor.go simplebank/worker TaskDistributor
+	~/go/bin/mockgen -package mockwk --destination worker/mock/distributor.go simplebank/worker TaskDistributor
 
 proto:
 	rm -f pb/*.go
