@@ -72,9 +72,9 @@ func LoadConfig(path string) (config Config, err error) {
 	redactedConfig.EmailTestRecipient = "[REDACTED]"
 	// redactedConfigJSON, err := json.MarshalIndent(redactedConfig, "", "  ")
 
-	if err != nil {
-		log.Fatalf("Failed to serialize config: %v", err)
-	}
+	// if err != nil {
+	// 	log.Fatalf("Failed to serialize config: %v", err)
+	// }
 
 	// Use reflection to iterate over struct fields
 	v := reflect.ValueOf(redactedConfig)
