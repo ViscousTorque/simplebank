@@ -8,7 +8,9 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
+	// "simplebank/api"
 	db "simplebank/db/sqlc"
 	_ "simplebank/doc/statik"
 	"simplebank/gapi"
@@ -93,26 +95,32 @@ func runTaskProcessor(ctx context.Context, waitGroup *errgroup.Group, config uti
 	mailer := mail.NewGmailSender(config.EmailSenderName, config.EmailSenderAddress, config.EmailSenderPassword)
 	taskProcessor := worker.NewRedisTaskProcessor(redisOpt, store, mailer)
 
-	log.Info().Msg("start task processor")
-	err := taskProcessor.Start()
-	if err != nil {
-		log.Fatal().Err(err).Msg("failed to start task processor")
-	}
-
 	waitGroup.Go(func() error {
-		<-ctx.Done()
-		log.Info().Msg("graceful shutdown task processor")
+		log.Info().Msg("starting task processor...")
 
-		taskProcessor.Shutdown()
-		log.Info().Msg("task processor is stopped")
+		err := taskProcessor.Start()
+		if err != nil {
+			log.Error().Err(err).Msg("task processor failed to start")
+			return err
+		}
 
+		log.Info().Msg("task processor exited normally")
 		return nil
 	})
 
+	waitGroup.Go(func() error {
+		<-ctx.Done()
+		log.Info().Msg("shutting down task processor...")
+
+		taskProcessor.Shutdown()
+		log.Info().Msg("task processor has stopped.")
+
+		return nil
+	})
 }
 
 func runDBMigration(migrationURL string, dbSource string) {
-	log.Info().Msg("Starting db migration ...")
+	log.Info().Msg("starting db migration ...")
 	migration, err := migrate.New(migrationURL, dbSource)
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot create new migrate instance")
@@ -129,52 +137,43 @@ func runDBMigration(migrationURL string, dbSource string) {
 func runGrpcServer(ctx context.Context, waitGroup *errgroup.Group, config util.Config, store db.Store, taskDistributor worker.TaskDistributor) {
 	server, err := gapi.NewServer(config, store, taskDistributor)
 	if err != nil {
-		log.Fatal().Err(err).Msg("cannot create a new server")
+		log.Fatal().Err(err).Msg("cannot create a new gRPC server")
 	}
 
-	gprcLogger := grpc.UnaryInterceptor(gapi.GrpcLogger)
-	grpcServer := grpc.NewServer(gprcLogger)
+	grpcLogger := grpc.UnaryInterceptor(gapi.GrpcLogger)
+	grpcServer := grpc.NewServer(grpcLogger)
+	if err != nil {
+		log.Fatal().Err(err).Msg("cannot create server")
+	}
 
 	pb.RegisterSimpleBankServer(grpcServer, server)
 	if config.EnableReflection {
-		log.Info().Msg("Enabling gRPC reflection...")
+		log.Info().Msg("enabling gRPC reflection...")
 		reflection.Register(grpcServer)
-	} else {
-		log.Fatal().Err(err).Msg("Reflection is disabled for security reasons.")
 	}
 
 	listener, err := net.Listen("tcp", config.GrpcServerAddress)
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot create listener")
 	}
-	log.Info().Msgf("start gRPC listener server at %s", config.GrpcServerAddress)
-
-	err = grpcServer.Serve(listener)
-	if err != nil {
-		log.Fatal().Err(err).Msg("gRPC server failed to serve")
-	}
 
 	waitGroup.Go(func() error {
-		log.Info().Msgf("start gRPC server at %s", listener.Addr().String())
+		log.Info().Msgf("starting gRPC server at %s", config.GrpcServerAddress)
 
-		err = grpcServer.Serve(listener)
-		if err != nil {
-			if errors.Is(err, grpc.ErrServerStopped) {
-				return nil
-			}
+		err := grpcServer.Serve(listener)
+		if err != nil && !errors.Is(err, grpc.ErrServerStopped) {
 			log.Error().Err(err).Msg("gRPC server failed to serve")
 			return err
 		}
-
 		return nil
 	})
 
 	waitGroup.Go(func() error {
 		<-ctx.Done()
-		log.Info().Msg("graceful shutdown gRPC server")
+		log.Info().Msg("shutting down gRPC server...")
 
 		grpcServer.GracefulStop()
-		log.Info().Msg("gRPC server is stopped")
+		log.Info().Msg("gRPC server has stopped.")
 
 		return nil
 	})
@@ -240,13 +239,11 @@ func runGatewayServer(ctx context.Context, waitGroup *errgroup.Group, config uti
 	}
 
 	waitGroup.Go(func() error {
-		log.Info().Msgf("start HTTP gateway server at %s", httpServer.Addr)
-		err = httpServer.ListenAndServe()
-		if err != nil {
-			if errors.Is(err, http.ErrServerClosed) {
-				return nil
-			}
-			log.Error().Err(err).Msg("HTTP gateway server failed to serve")
+		log.Info().Msgf("starting HTTP gateway server at %s", httpServer.Addr)
+
+		err := httpServer.ListenAndServe()
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Error().Err(err).Msg("HTTP gateway server failed to start")
 			return err
 		}
 		return nil
@@ -254,15 +251,30 @@ func runGatewayServer(ctx context.Context, waitGroup *errgroup.Group, config uti
 
 	waitGroup.Go(func() error {
 		<-ctx.Done()
-		log.Info().Msg("graceful shutdown HTTP gateway server")
+		log.Info().Msg("received shutdown signal, stopping HTTP gateway server...")
 
-		err := httpServer.Shutdown(context.Background())
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		err := httpServer.Shutdown(shutdownCtx)
 		if err != nil {
 			log.Error().Err(err).Msg("failed to shutdown HTTP gateway server")
 			return err
 		}
 
-		log.Info().Msg("HTTP gateway server is stopped")
+		log.Info().Msg("HTTP gateway server stopped successfully")
 		return nil
 	})
 }
+
+// func runGinServer(config util.Config, store db.Store) {
+// 	server, err := api.NewServer(config, store)
+// 	if err != nil {
+// 		log.Fatal().Err(err).Msg("cannot create server")
+// 	}
+
+// 	err = server.Run(config.HttpServerAddress)
+// 	if err != nil {
+// 		log.Fatal().Err(err).Msg("cannot start server")
+// 	}
+// }
