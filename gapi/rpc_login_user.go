@@ -30,7 +30,7 @@ func (server *Server) LoginUser(ctx context.Context, request *pb.LoginUserReques
 
 	err = util.CheckPassword(request.GetPassword(), user.HashedPassword)
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, "incorrect password")
+		return nil, status.Errorf(codes.NotFound, "Invalid username or password")
 	}
 
 	accessToken, accessPayload, err := server.tokenMaker.CreateToken(
