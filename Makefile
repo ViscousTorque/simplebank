@@ -84,6 +84,9 @@ test:
 server:
 	go run main.go
 
+frontend:
+	cd frontend && npm run dev
+
 docServer:
 	docker run --rm --name simplebank -p 8080:8080 --network bank-network -e "DB_SOURCE=postgresql://admin:adminSecret@postgres:5432/simple_bank?sslmode=disable" simplebank
 
@@ -108,4 +111,4 @@ startTestEnv:
 	@sleep 2
 	@$(MAKE) redis
 
-.PHONY: startTestEnv network postgres mysql8up mysql createdb dropdb migrateup migratedown migrateUpVersion migrateDownVersion new_migration db_docs db_schema sqlcgen sqlcinit test server docServer mock proto redis stopdb
+.PHONY: startTestEnv network postgres mysql8up mysql createdb dropdb migrateup migratedown migrateUpVersion migrateDownVersion new_migration db_docs db_schema sqlcgen sqlcinit test server frontend docServer mock proto redis stopdb

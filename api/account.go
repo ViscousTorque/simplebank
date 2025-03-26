@@ -87,7 +87,7 @@ func (server *Server) listAccounts(ctx *gin.Context) {
 		return
 	}
 
-	authPayload := ctx.MustGet(authorisationPayloadKey).(*token.Payload)
+	authPayload := ctx.MustGet(authorisationPayloadKey).(*token.Payload) // Todo: could panic if key doesnt exist, TODO: use ctx.Get()
 	args := db.ListAccountsParams{
 		Owner:  authPayload.Username,
 		Limit:  request.PageSize, // interesting point: if this was request.pageSize, binding fails!
